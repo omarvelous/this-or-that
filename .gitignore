@@ -44,6 +44,9 @@ supabase/.branches/
 # OS artifacts
 Thumbs.db
 
+# storybook
+/storybook-static
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
