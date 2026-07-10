@@ -51,20 +51,20 @@ We explored four survey shapes. All share the same create → share → vote →
 results skeleton and the same visual system.
 
 1. **Classic A/B (one-tap)** — two options head-to-head, single anonymous tap,
-   animated percentage reveal. The fastest possible path. *(prototype: `1a`/`1b`)*
+   animated percentage reveal. The fastest possible path. _(prototype: `1a`/`1b`)_
 
-2. **Split + name-after** — full-bleed split voting screen; because the tap *is*
+2. **Split + name-after** — full-bleed split voting screen; because the tap _is_
    the vote, the optional "who's voting?" step appears **after** you pick (and is
-   skippable), so nothing slows the vote itself. *(prototype: `2a`)*
+   skippable), so nothing slows the vote itself. _(prototype: `2a`)_
 
 3. **Gauntlet (king-of-the-hill)** — a reigning pick faces a new challenger each
    round. Win and it **holds its slot**; lose and the challenger takes the crown.
    Ends in a ranked leaderboard. Good for "rank these" from a pile of options.
-   *(prototype: `3a`)*
+   _(prototype: `3a`)_
 
 4. **Bracket (single elimination)** — seed 8 contenders, tap through every
    matchup (quarters → semis → final). A readable summary appears **between
-   rounds**, and the champion screen shows the full bracket. *(prototype: `3b`)*
+   rounds**, and the champion screen shows the full bracket. _(prototype: `3b`)_
 
 Formats 1–2 are the free core; 3–4 are natural premium upsells.
 
@@ -80,6 +80,7 @@ Each option can be **text, an image, or both**:
 - Links/URL previews were scoped but not prototyped — a future addition.
 
 **Image handling decisions (from prototyping):**
+
 - Voting panels show the **whole image** (contained) over a blurred fill of
   itself — no aggressive cropping.
 - A **"view full"** control opens the complete image in a fullscreen lightbox.

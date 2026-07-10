@@ -7,17 +7,17 @@
 
 ## Stack
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| **Framework** | Next.js (App Router) | Server components for fast voter pages, API routes for backend, `generateMetadata` for dynamic OG tags |
-| **Database** | Supabase (Postgres) | Covers DB + realtime + auth + storage under one roof; generous free tier |
-| **Auth** | Supabase Auth | Magic link + Google + Apple; already in the stack, no extra vendor |
-| **Storage** | Supabase Storage | S3-compatible, CDN-backed; co-located with DB for simple references |
-| **Hosting** | Vercel | Native Next.js platform; edge functions, preview deploys, free tier |
-| **OG Images** | `@vercel/og` (Satori) | Edge-rendered JSX → PNG; zero external services |
-| **Styling** | Tailwind CSS + CSS custom properties | Utility-first speed; `data-theme="sunset\|electric"` toggles theme via custom properties |
-| **QR Codes** | `react-qr-code` | Client-side SVG generation, no server cost |
-| **Short IDs** | `nanoid` (7–8 chars) | URL-safe, collision-resistant, compact |
+| Layer         | Choice                               | Why                                                                                                    |
+| ------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------ |
+| **Framework** | Next.js (App Router)                 | Server components for fast voter pages, API routes for backend, `generateMetadata` for dynamic OG tags |
+| **Database**  | Supabase (Postgres)                  | Covers DB + realtime + auth + storage under one roof; generous free tier                               |
+| **Auth**      | Supabase Auth                        | Magic link + Google + Apple; already in the stack, no extra vendor                                     |
+| **Storage**   | Supabase Storage                     | S3-compatible, CDN-backed; co-located with DB for simple references                                    |
+| **Hosting**   | Vercel                               | Native Next.js platform; edge functions, preview deploys, free tier                                    |
+| **OG Images** | `@vercel/og` (Satori)                | Edge-rendered JSX → PNG; zero external services                                                        |
+| **Styling**   | Tailwind CSS + CSS custom properties | Utility-first speed; `data-theme="sunset\|electric"` toggles theme via custom properties               |
+| **QR Codes**  | `react-qr-code`                      | Client-side SVG generation, no server cost                                                             |
+| **Short IDs** | `nanoid` (7–8 chars)                 | URL-safe, collision-resistant, compact                                                                 |
 
 ### Why this stack
 
@@ -35,11 +35,11 @@ generous, and let a small team ship an MVP in weeks.
   Apple sign-in). Needed to manage/close/delete their polls.
 - **Voters never need accounts.** Anti-abuse is layered:
 
-  | Layer | Mechanism | Purpose |
-  |-------|-----------|---------|
-  | 1 | Cookie / `localStorage` flag | Instant "already voted" UX feedback |
-  | 2 | FingerprintJS (open-source) | Primary dedup — ~60% unique ID accuracy; blocks most casual repeat voters |
-  | 3 | Hashed IP rate limit | Throttle (max 3 votes per IP per poll); catches VPN-less repeats |
+  | Layer | Mechanism                    | Purpose                                                                   |
+  | ----- | ---------------------------- | ------------------------------------------------------------------------- |
+  | 1     | Cookie / `localStorage` flag | Instant "already voted" UX feedback                                       |
+  | 2     | FingerprintJS (open-source)  | Primary dedup — ~60% unique ID accuracy; blocks most casual repeat voters |
+  | 3     | Hashed IP rate limit         | Throttle (max 3 votes per IP per poll); catches VPN-less repeats          |
 
   A composite key `hash(visitorId + hashedIP + pollId)` is stored per vote. If
   it exists, the vote is rejected. This stops ~95% of casual ballot stuffing

@@ -69,6 +69,7 @@ Format-on-save, ESLint auto-fix, Tailwind IntelliSense config, and recommended
 extensions for the team.
 
 **Create:**
+
 - `.vscode/settings.json` — format on save, default formatter, Tailwind CSS file associations
 - `.vscode/extensions.json` — recommend ESLint, Prettier, Tailwind IntelliSense
 
@@ -118,6 +119,7 @@ Create the three Supabase client helpers (browser, server, admin) and the
 env var template. Configure `next.config.ts` for Supabase Storage image domains.
 
 **Create:**
+
 - `.env.local.example` — `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXT_PUBLIC_APP_URL`
 - `src/lib/supabase/client.ts` — browser client via `createBrowserClient`
 - `src/lib/supabase/server.ts` — server client via `createServerClient` (cookies)
@@ -146,6 +148,7 @@ Initialize Supabase locally, write the initial schema migration with all 5
 tables, constraints, and indexes.
 
 **Create:**
+
 - `supabase/config.toml`
 - `supabase/migrations/001_initial_schema.sql` — users, polls, options, matchups, votes tables with all FKs, `UNIQUE(matchup_id, fingerprint)`, index on `polls.short_id`
 
@@ -156,6 +159,7 @@ tables, constraints, and indexes.
 Row-level security for all tables.
 
 **Create:** `supabase/migrations/002_rls_policies.sql`
+
 - polls: SELECT for anyone (`deleted_at IS NULL`), INSERT/UPDATE/DELETE for `creator_id = auth.uid()`
 - options: SELECT for anyone, INSERT/UPDATE for poll creator
 - matchups: SELECT for anyone, INSERT for poll creator
@@ -177,6 +181,7 @@ Session refresh middleware and `getUser()` server helper. Middleware protects
 `/polls/new` and `/dashboard`, redirecting to `/login`.
 
 **Create:**
+
 - `src/middleware.ts`
 - `src/lib/auth.ts`
 
@@ -188,6 +193,7 @@ Login page with magic link email input and Google OAuth button. Auth callback
 routes for code exchange and magic link confirmation.
 
 **Create:**
+
 - `src/app/login/page.tsx`
 - `src/app/auth/callback/route.ts`
 - `src/app/auth/confirm/route.ts`
@@ -201,6 +207,7 @@ poll + options + 1 matchup in a transaction, set `published_at=now()`,
 `closes_at=now()+3d`, return `{ shortId }`.
 
 **Create:**
+
 - `src/app/api/polls/route.ts`
 - `src/lib/nanoid.ts` — `generateShortId()` wrapper
 
@@ -212,6 +219,7 @@ Create page with form: question input, 2 option text inputs, submit button.
 Calls `POST /api/polls`, redirects to `/polls/[shortId]` on success.
 
 **Create:**
+
 - `src/app/polls/new/page.tsx` — server component, auth-gated
 - `src/components/poll-form.tsx` — client component
 
@@ -233,6 +241,7 @@ Client component: two option panels (split screen, mobile-first), tap = vote.
 FingerprintJS init, composite key generation.
 
 **Create:**
+
 - `src/components/voting-ui.tsx`
 - `src/lib/fingerprint.ts`
 
@@ -273,6 +282,7 @@ percentage bars (CSS transitions), vote counts, winner highlight. Polls
 `GET /results` every 2.5s for live updates.
 
 **Create:**
+
 - `src/app/polls/[shortId]/results/page.tsx`
 - `src/components/results-view.tsx`
 - `src/components/animated-bar.tsx`
@@ -305,6 +315,7 @@ Server component, auth-gated: fetch user's polls ordered by `created_at` desc.
 Poll cards showing question, vote count, status (live/closed/expired).
 
 **Create:**
+
 - `src/app/dashboard/page.tsx`
 - `src/components/poll-list.tsx`
 
@@ -326,6 +337,7 @@ upload to Supabase Storage, return public URL. Client helper for pre-upload
 resize via `browser-image-compression`.
 
 **Create:**
+
 - `src/app/api/polls/[shortId]/upload/route.ts`
 - `src/lib/image-utils.ts`
 
