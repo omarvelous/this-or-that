@@ -20,6 +20,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
+    "eslint-plugin-import-x": "^4.17.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
