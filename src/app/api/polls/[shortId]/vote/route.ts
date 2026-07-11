@@ -141,9 +141,75 @@ export async function POST(
   return NextResponse.json(
     {
       voted: true,
+      fingerprint: compositeFingerprint,
       counts,
       totalVotes: voteCounts?.length ?? 0,
     },
     { status: 201 },
   );
+}
+
+// PATCH — update voter_name on an existing vote (post-vote name prompt).
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ shortId: string }> },
+) {
+  const { shortId } = await params;
+
+  let body: { fingerprint: string; voterName: string };
+  try {
+    body = (await request.json()) as { fingerprint: string; voterName: string };
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (!body.fingerprint || !body.voterName?.trim()) {
+    return NextResponse.json(
+      { error: "fingerprint and voterName are required" },
+      { status: 422 },
+    );
+  }
+
+  const supabase = createAdminClient();
+
+  // Look up the poll to get its ID.
+  const { data: poll } = await supabase
+    .from("polls")
+    .select("id")
+    .eq("short_id", shortId)
+    .single();
+
+  if (!poll) {
+    return NextResponse.json({ error: "Poll not found" }, { status: 404 });
+  }
+
+  // Build the same composite fingerprint the POST handler used.
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    request.headers.get("x-real-ip") ??
+    "unknown";
+
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`${body.fingerprint}:${ip}:${shortId}`);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const compositeFingerprint = Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  // Update voter_name on the matching vote.
+  const { error } = await supabase
+    .from("votes")
+    .update({ voter_name: body.voterName.trim() })
+    .eq("poll_id", poll.id)
+    .eq("fingerprint", compositeFingerprint);
+
+  if (error) {
+    console.error("voter_name update error", error);
+    return NextResponse.json(
+      { error: "Failed to update name" },
+      { status: 500 },
+    );
+  }
+
+  return NextResponse.json({ updated: true });
 }

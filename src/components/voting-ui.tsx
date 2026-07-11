@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { NamePrompt } from "@/components/name-prompt";
 import { getVisitorId } from "@/lib/fingerprint";
 
 interface OptionData {
@@ -30,6 +31,8 @@ export function VotingUI({
   const [status, setStatus] = useState<VoteStatus>("idle");
   const [votedOptionId, setVotedOptionId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
+  const [showNamePrompt, setShowNamePrompt] = useState(false);
+  const [visitorFingerprint, setVisitorFingerprint] = useState("");
 
   async function handleVote(optionId: string) {
     if (status === "voting" || status === "voted") return;
@@ -40,6 +43,7 @@ export function VotingUI({
 
     try {
       const visitorId = await getVisitorId();
+      setVisitorFingerprint(visitorId);
 
       const res = await fetch(`/api/polls/${shortId}/vote`, {
         method: "POST",
@@ -67,11 +71,7 @@ export function VotingUI({
       }
 
       setStatus("voted");
-
-      // Redirect to results after a brief pause so the user sees feedback.
-      setTimeout(() => {
-        router.push(`/polls/${shortId}/results`);
-      }, 1200);
+      setShowNamePrompt(true);
     } catch {
       setErrorMsg("Network error — please try again");
       setStatus("error");
@@ -111,7 +111,7 @@ export function VotingUI({
         {status === "voting" && (
           <p className="text-text-muted text-sm">Casting your vote…</p>
         )}
-        {status === "voted" && (
+        {status === "voted" && !showNamePrompt && (
           <p className="text-success text-sm font-medium">
             Vote cast! Redirecting to results…
           </p>
@@ -131,6 +131,15 @@ export function VotingUI({
         )}
         {status === "error" && <p className="text-error text-sm">{errorMsg}</p>}
       </div>
+
+      {/* Post-vote name prompt */}
+      {showNamePrompt && (
+        <NamePrompt
+          shortId={shortId}
+          fingerprint={visitorFingerprint}
+          onDone={() => router.push(`/polls/${shortId}/results`)}
+        />
+      )}
     </div>
   );
 }
