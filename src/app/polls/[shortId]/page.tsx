@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 
+import { VotingUI } from "@/components/voting-ui";
 import { createClient } from "@/lib/supabase/server";
 
 import type { Metadata, ResolvingMetadata } from "next";
@@ -122,22 +123,21 @@ export default async function PollPage({ params }: Props) {
         </h1>
       </div>
 
-      {/* Voting UI — client component rendered in Step 21 */}
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-4 pb-8">
-        <p className="text-text-muted text-sm">Tap an option to vote</p>
-        <pre className="text-text-secondary text-xs">
-          {JSON.stringify(
-            {
-              shortId,
-              matchupId: matchup.id,
-              optionA: { id: optionA.id, label: optionA.label },
-              optionB: { id: optionB.id, label: optionB.label },
-            },
-            null,
-            2,
-          )}
-        </pre>
-      </div>
+      {/* Voting UI */}
+      <VotingUI
+        shortId={shortId}
+        matchupId={matchup.id}
+        optionA={{
+          id: optionA.id,
+          label: optionA.label,
+          imageUrl: optionA.image_url,
+        }}
+        optionB={{
+          id: optionB.id,
+          label: optionB.label,
+          imageUrl: optionB.image_url,
+        }}
+      />
     </div>
   );
 }
