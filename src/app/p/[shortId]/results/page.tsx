@@ -1,7 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ResultsView } from "@/components/results-view";
-import { SharePanel } from "@/components/share-panel";
+import { ResultRow } from "@/components/result-row";
+import { StatusPill } from "@/components/status-pill";
+import { VoterResultsLive } from "@/components/voter-results-live";
 import { createClient } from "@/lib/supabase/server";
 
 import type { Metadata } from "next";
@@ -82,10 +84,71 @@ export default async function VoterResultsPage({ params }: Props) {
     notFound();
   }
 
+  const sorted = [...data.options].sort((a, b) => a.position - b.position);
+  const maxVotes = Math.max(...data.options.map((o) => o.votes), 0);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-10 px-4 py-12">
-      <ResultsView shortId={shortId} initialData={data} />
-      <SharePanel shortId={shortId} />
+    <div className="bg-bg flex min-h-screen flex-col">
+      {/* Minimal header */}
+      <header className="flex items-center justify-center px-6 py-4">
+        <Link href="/" className="font-display text-ink text-sm font-bold">
+          this or that
+        </Link>
+      </header>
+
+      <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col px-6 pb-12">
+        {/* Status */}
+        <div className="flex justify-center">
+          {data.isClosed ? (
+            <StatusPill variant="closed" label="Voting closed" />
+          ) : (
+            <StatusPill
+              variant="live"
+              label={`Live · ${data.totalVotes} ${data.totalVotes === 1 ? "vote" : "votes"}`}
+              pulse
+            />
+          )}
+        </div>
+
+        {/* Question */}
+        <h1 className="font-display text-ink mt-6 text-center text-[clamp(1.4rem,4vw,2rem)] leading-tight font-bold tracking-tight">
+          {data.question}
+        </h1>
+
+        {/* Result rows */}
+        <div className="mt-8 space-y-6">
+          {sorted.map((opt, i) => (
+            <ResultRow
+              key={opt.id}
+              side={i === 0 ? "a" : "b"}
+              label={opt.label}
+              votes={opt.votes}
+              percentage={opt.percentage}
+              isWinner={data.isClosed && opt.votes === maxVotes && maxVotes > 0}
+            />
+          ))}
+        </div>
+
+        {/* Live polling (client component) */}
+        {!data.isClosed && <VoterResultsLive shortId={shortId} />}
+
+        {/* Note */}
+        <p className="text-muted-2 mt-6 text-center text-xs">
+          {data.isClosed
+            ? "This poll is closed. Final results are shown above."
+            : "Results update live every few seconds."}
+        </p>
+
+        {/* CTA */}
+        <div className="mt-10">
+          <Link
+            href="/polls/new"
+            className="rounded-input bg-option-a shadow-cta-glow hover:bg-option-a-hover block py-3.5 text-center text-sm font-bold text-white transition-all hover:-translate-y-0.5"
+          >
+            Create your own poll →
+          </Link>
+        </div>
+      </main>
     </div>
   );
 }
