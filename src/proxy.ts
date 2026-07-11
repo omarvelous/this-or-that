@@ -1,31 +1,56 @@
+import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { updateSession } from "@/lib/supabase/middleware";
+import type { Database } from "@/types/database";
 
 // Protected routes — redirect to /login if no session.
 const PROTECTED = ["/polls/new", "/dashboard"];
 
 export async function proxy(request: NextRequest) {
-  // Refresh the session and propagate updated cookies to the response.
-  const response = await updateSession(request);
+  // Build the response object that the proxy will return. We reassign it
+  // inside setAll so that refreshed session cookies propagate to the browser.
+  let supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          // Write updated cookies back to both the request (for downstream
+          // handlers) and the response (so the browser receives them).
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value),
+          );
+          supabaseResponse = NextResponse.next({ request });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options),
+          );
+        },
+      },
+    },
+  );
+
+  // Validate the session. This also refreshes expired tokens and writes the
+  // new tokens back to cookies via setAll above.
+  // IMPORTANT: do not remove this call — without it session refresh breaks.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
   const isProtected = PROTECTED.some((path) => pathname.startsWith(path));
 
-  if (isProtected) {
-    // Check the session cookie that updateSession just refreshed.
-    const hasSession = request.cookies
-      .getAll()
-      .some(({ name }) => name.startsWith("sb-"));
-
-    if (!hasSession) {
-      const loginUrl = new URL("/login", request.url);
-      loginUrl.searchParams.set("next", pathname);
-      return NextResponse.redirect(loginUrl);
-    }
+  if (isProtected && !user) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
-  return response;
+  return supabaseResponse;
 }
 
 export const config = {
