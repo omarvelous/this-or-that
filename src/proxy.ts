@@ -4,8 +4,14 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { Database } from "@/types/database";
 
 // Protected routes — redirect to /login if no session.
-// All /polls/* routes are maker-only. Voter routes live at /p/*.
-const PROTECTED = ["/polls/", "/dashboard"];
+// /polls/new is public (the form handles auth via inline modal).
+// Other /polls/* routes are maker-only. Voter routes live at /p/*.
+const PROTECTED = ["/dashboard"];
+
+// Polls routes that require auth (exclude /polls/new)
+function isProtectedPollRoute(pathname: string): boolean {
+  return pathname.startsWith("/polls/") && pathname !== "/polls/new";
+}
 
 export async function proxy(request: NextRequest) {
   // Build the response object that the proxy will return. We reassign it
@@ -43,9 +49,11 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
-  const isProtected = PROTECTED.some((path) => pathname.startsWith(path));
+  const needsAuth =
+    PROTECTED.some((path) => pathname.startsWith(path)) ||
+    isProtectedPollRoute(pathname);
 
-  if (isProtected && !user) {
+  if (needsAuth && !user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set("next", pathname);
     return NextResponse.redirect(loginUrl);

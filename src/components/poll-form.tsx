@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useState } from "react";
 
+import { IdentityModal } from "@/components/identity-modal";
+import { OptionCard } from "@/components/option-card";
 import { compressImage } from "@/lib/image-utils";
 
 interface OptionState {
@@ -17,7 +18,11 @@ const DEFAULT_OPTIONS: [OptionState, OptionState] = [
   { label: "", imageFile: null, imagePreview: null },
 ];
 
-export function PollForm() {
+interface PollFormProps {
+  isAuthenticated: boolean;
+}
+
+export function PollForm({ isAuthenticated }: PollFormProps) {
   const router = useRouter();
   const [question, setQuestion] = useState("");
   const [options, setOptions] =
@@ -26,10 +31,9 @@ export function PollForm() {
     "idle" | "loading" | "uploading" | "error"
   >("idle");
   const [errorMsg, setErrorMsg] = useState("");
-  const fileInputARef = useRef<HTMLInputElement>(null);
-  const fileInputBRef = useRef<HTMLInputElement>(null);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
-  function updateOptionLabel(index: 0 | 1, label: string) {
+  function updateLabel(index: 0 | 1, label: string) {
     setOptions((prev) => {
       const next: [OptionState, OptionState] = [{ ...prev[0] }, { ...prev[1] }];
       next[index] = { ...next[index], label };
@@ -37,13 +41,10 @@ export function PollForm() {
     });
   }
 
-  function handleImageSelect(index: 0 | 1, file: File | null) {
-    if (!file) return;
-
+  function handleImageSelect(index: 0 | 1, file: File) {
     const preview = URL.createObjectURL(file);
     setOptions((prev) => {
       const next: [OptionState, OptionState] = [{ ...prev[0] }, { ...prev[1] }];
-      // Revoke old preview URL to avoid memory leaks
       if (next[index].imagePreview) {
         URL.revokeObjectURL(next[index].imagePreview!);
       }
@@ -61,13 +62,21 @@ export function PollForm() {
       next[index] = { ...next[index], imageFile: null, imagePreview: null };
       return next;
     });
-    // Reset the file input
-    const ref = index === 0 ? fileInputARef : fileInputBRef;
-    if (ref.current) ref.current.value = "";
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+
+    // If not authenticated, show the email modal instead of submitting
+    if (!isAuthenticated) {
+      setShowAuthModal(true);
+      return;
+    }
+
+    await createPoll();
+  }
+
+  async function createPoll() {
     setStatus("loading");
     setErrorMsg("");
 
@@ -90,12 +99,11 @@ export function PollForm() {
 
     const { shortId } = (await res.json()) as { shortId: string };
 
-    // 2. Upload images if any were selected
+    // 2. Upload images if any
     const imagesToUpload = options.filter((o) => o.imageFile);
     if (imagesToUpload.length > 0) {
       setStatus("uploading");
 
-      // We need the option IDs — fetch the poll data
       const pollRes = await fetch(`/api/polls/${shortId}/results`);
       if (pollRes.ok) {
         const pollData = (await pollRes.json()) as {
@@ -120,7 +128,6 @@ export function PollForm() {
               body: formData,
             });
           } catch {
-            // Image upload failure is non-fatal — poll is already created.
             console.error(`Failed to upload image for option ${i}`);
           }
         }
@@ -131,167 +138,92 @@ export function PollForm() {
   }
 
   const isDisabled = status === "loading" || status === "uploading";
-  const optionA = options[0];
-  const optionB = options[1];
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Question */}
-      <div className="space-y-2">
-        <label
-          htmlFor="question"
-          className="text-text block text-sm font-medium"
-        >
-          Question
-        </label>
-        <input
-          id="question"
-          type="text"
-          placeholder="Which is better?"
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
-          required
-          maxLength={280}
-          disabled={isDisabled}
-          className="border-border bg-surface placeholder:text-text-muted focus:border-primary w-full rounded-lg border px-4 py-3 text-sm outline-none disabled:opacity-50"
-        />
-      </div>
-
-      {/* Options */}
-      <div className="space-y-3">
-        <p className="text-text text-sm font-medium">Options</p>
-
-        <OptionInput
-          side="a"
-          label={optionA?.label ?? ""}
-          imagePreview={optionA?.imagePreview ?? null}
-          disabled={isDisabled}
-          fileInputRef={fileInputARef}
-          onLabelChange={(v) => updateOptionLabel(0, v)}
-          onImageSelect={(f) => handleImageSelect(0, f)}
-          onImageRemove={() => removeImage(0)}
-        />
-
-        <div className="flex items-center justify-center">
-          <span className="text-text-muted text-xs font-medium tracking-widest uppercase">
-            vs
-          </span>
-        </div>
-
-        <OptionInput
-          side="b"
-          label={optionB?.label ?? ""}
-          imagePreview={optionB?.imagePreview ?? null}
-          disabled={isDisabled}
-          fileInputRef={fileInputBRef}
-          onLabelChange={(v) => updateOptionLabel(1, v)}
-          onImageSelect={(f) => handleImageSelect(1, f)}
-          onImageRemove={() => removeImage(1)}
-        />
-      </div>
-
-      {errorMsg && <p className="text-error text-sm">{errorMsg}</p>}
-
-      <button
-        type="submit"
-        disabled={isDisabled}
-        className="bg-primary text-text-inverse hover:bg-primary-hover w-full rounded-lg py-3 text-sm font-medium transition-colors disabled:opacity-50"
-      >
-        {status === "loading"
-          ? "Creating…"
-          : status === "uploading"
-            ? "Uploading images…"
-            : "Create poll"}
-      </button>
-    </form>
-  );
-}
-
-function OptionInput({
-  side,
-  label,
-  imagePreview,
-  disabled,
-  fileInputRef,
-  onLabelChange,
-  onImageSelect,
-  onImageRemove,
-}: {
-  side: "a" | "b";
-  label: string;
-  imagePreview: string | null;
-  disabled: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
-  onLabelChange: (value: string) => void;
-  onImageSelect: (file: File | null) => void;
-  onImageRemove: () => void;
-}) {
-  const badgeColor = side === "a" ? "bg-option-a" : "bg-option-b";
-  const focusColor =
-    side === "a" ? "focus:border-option-a" : "focus:border-option-b";
-  const sideLabel = side === "a" ? "A" : "B";
-
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-3">
-        <span
-          className={`${badgeColor} flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white`}
-        >
-          {sideLabel}
-        </span>
-        <input
-          type="text"
-          placeholder={`Option ${sideLabel}`}
-          value={label}
-          onChange={(e) => onLabelChange(e.target.value)}
-          required
-          maxLength={140}
-          disabled={disabled}
-          className={`border-border bg-surface placeholder:text-text-muted ${focusColor} w-full rounded-lg border px-4 py-3 text-sm outline-none disabled:opacity-50`}
-        />
-      </div>
-
-      {/* Image preview or upload button */}
-      {imagePreview ? (
-        <div className="relative ml-11 w-fit">
-          <Image
-            src={imagePreview}
-            alt={`Option ${sideLabel} preview`}
-            width={120}
-            height={120}
-            className="rounded-lg object-cover"
-            unoptimized
-          />
-          <button
-            type="button"
-            onClick={onImageRemove}
-            disabled={disabled}
-            className="bg-error absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold text-white shadow-sm hover:bg-red-600 disabled:opacity-50"
-            aria-label="Remove image"
-          >
-            ×
-          </button>
-        </div>
-      ) : (
-        <div className="ml-11">
+    <>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Question */}
+        <div>
           <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp,image/gif"
-            onChange={(e) => onImageSelect(e.target.files?.[0] ?? null)}
-            disabled={disabled}
-            className="hidden"
+            type="text"
+            placeholder="What's the question?"
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            required
+            maxLength={280}
+            disabled={isDisabled}
+            className="rounded-input bg-sand font-display text-ink placeholder:text-muted-2 w-full border-0 px-5 py-4 text-lg font-semibold outline-none disabled:opacity-50"
           />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={disabled}
-            className="text-text-muted hover:text-text-secondary text-xs font-medium transition-colors disabled:opacity-50"
-          >
-            + Add image (optional)
-          </button>
+          <p className="text-muted-2 mt-1.5 text-right text-xs">
+            {question.length}/280
+          </p>
         </div>
+
+        {/* Option cards */}
+        <div className="relative space-y-4">
+          <OptionCard
+            side="a"
+            label={options[0].label}
+            imagePreview={options[0].imagePreview}
+            disabled={isDisabled}
+            onLabelChange={(v) => updateLabel(0, v)}
+            onImageSelect={(f) => handleImageSelect(0, f)}
+            onImageRemove={() => removeImage(0)}
+          />
+
+          {/* VS badge */}
+          <div className="flex items-center justify-center">
+            <span className="bg-sand text-muted flex h-10 w-10 items-center justify-center rounded-full text-xs font-extrabold">
+              VS
+            </span>
+          </div>
+
+          <OptionCard
+            side="b"
+            label={options[1].label}
+            imagePreview={options[1].imagePreview}
+            disabled={isDisabled}
+            onLabelChange={(v) => updateLabel(1, v)}
+            onImageSelect={(f) => handleImageSelect(1, f)}
+            onImageRemove={() => removeImage(1)}
+          />
+        </div>
+
+        {errorMsg && <p className="text-error text-sm">{errorMsg}</p>}
+
+        <button
+          type="submit"
+          disabled={isDisabled}
+          className="rounded-input bg-option-a shadow-cta-glow hover:bg-option-a-hover w-full py-4 text-sm font-bold text-white transition-all hover:-translate-y-0.5 disabled:opacity-50"
+        >
+          {status === "loading"
+            ? "Creating…"
+            : status === "uploading"
+              ? "Uploading images…"
+              : "Create poll →"}
+        </button>
+      </form>
+
+      {/* Auth modal for unauthenticated users */}
+      {showAuthModal && (
+        <IdentityModal
+          mode="create"
+          redirectUrl="/polls/new"
+          onClose={() => setShowAuthModal(false)}
+          onSkip={() => {
+            setShowAuthModal(false);
+            // Skip auth — try creating anyway (will fail if API requires auth,
+            // but allows future "anonymous poll" flow)
+            createPoll();
+          }}
+          onAuthenticated={() => {
+            setShowAuthModal(false);
+            // After authenticating via magic link, the page will reload
+            // with the session. The user can then submit again.
+            router.refresh();
+          }}
+        />
       )}
-    </div>
+    </>
   );
 }

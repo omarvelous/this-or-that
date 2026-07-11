@@ -1,28 +1,30 @@
-import { redirect } from "next/navigation";
-
 import { PollForm } from "@/components/poll-form";
 import { getUser } from "@/lib/auth";
 
-export const metadata = {
-  title: "New poll — this or that",
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Create a poll — this or that",
 };
 
 export default async function NewPollPage() {
   const user = await getUser();
-  if (!user) {
-    redirect("/login?next=/polls/new");
-  }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
-      <div className="w-full max-w-lg space-y-8">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">New poll</h1>
-          <p className="text-text-secondary text-sm">
-            Ask a question. Give two options. Share the link.
-          </p>
+    <div className="bg-bg min-h-screen py-[clamp(40px,6vw,80px)]">
+      <div className="mx-auto max-w-[600px] px-6">
+        {/* Eyebrow */}
+        <p className="text-muted text-xs font-semibold tracking-widest uppercase">
+          Step 1 · Create
+        </p>
+
+        <h1 className="font-display text-ink mt-3 text-[clamp(1.8rem,4vw,2.5rem)] font-bold tracking-tight">
+          Set up your matchup
+        </h1>
+
+        <div className="mt-8">
+          <PollForm isAuthenticated={!!user} />
         </div>
-        <PollForm />
       </div>
     </div>
   );
