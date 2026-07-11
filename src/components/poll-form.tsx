@@ -127,7 +127,7 @@ export function PollForm() {
       }
     }
 
-    router.push(`/polls/${shortId}`);
+    router.push(`/polls/${shortId}/share`);
   }
 
   const isDisabled = status === "loading" || status === "uploading";

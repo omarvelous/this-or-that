@@ -4,7 +4,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import type { Database } from "@/types/database";
 
 // Protected routes — redirect to /login if no session.
-const PROTECTED = ["/polls/new", "/dashboard"];
+// All /polls/* routes are maker-only. Voter routes live at /p/*.
+const PROTECTED = ["/polls/", "/dashboard"];
 
 export async function proxy(request: NextRequest) {
   // Build the response object that the proxy will return. We reassign it
