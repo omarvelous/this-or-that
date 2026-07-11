@@ -49,7 +49,7 @@ export function PollList({ polls }: PollListProps) {
         return (
           <Link
             key={poll.id}
-            href={`/polls/${poll.short_id}/results`}
+            href={`/polls/${poll.short_id}`}
             className="border-border hover:bg-bg-subtle block rounded-xl border p-4 transition-colors"
           >
             <div className="flex items-start justify-between gap-3">
