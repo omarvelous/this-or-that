@@ -122,7 +122,7 @@ export function VotingUI({
               You&apos;ve already voted on this poll.
             </p>
             <button
-              onClick={() => router.push(`/polls/${shortId}/results`)}
+              onClick={() => router.push(`/p/${shortId}/results`)}
               className="bg-primary text-text-inverse hover:bg-primary-hover rounded-lg px-6 py-2 text-sm font-medium transition-colors"
             >
               View results
@@ -137,7 +137,7 @@ export function VotingUI({
         <NamePrompt
           shortId={shortId}
           fingerprint={visitorFingerprint}
-          onDone={() => router.push(`/polls/${shortId}/results`)}
+          onDone={() => router.push(`/p/${shortId}/results`)}
         />
       )}
     </div>
