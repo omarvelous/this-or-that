@@ -1,143 +1,227 @@
+import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-import { VotingUI } from "@/components/voting-ui";
+import { SharePanel } from "@/components/share-panel";
+import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-import type { Metadata, ResolvingMetadata } from "next";
+import type { Metadata } from "next";
 
 type Props = {
   params: Promise<{ shortId: string }>;
 };
 
-export async function generateMetadata(
-  { params }: Props,
-  _parent: ResolvingMetadata,
-): Promise<Metadata> {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { shortId } = await params;
-  const poll = await fetchPoll(shortId);
+  const supabase = await createClient();
+  const { data: poll } = await supabase
+    .from("polls")
+    .select("question")
+    .eq("short_id", shortId)
+    .single();
 
-  if (!poll) {
-    return { title: "Poll not found" };
-  }
-
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   return {
-    title: `${poll.question} — this or that`,
-    description: `Vote: ${poll.options.map((o) => o.label).join(" vs ")}`,
-    openGraph: {
-      title: poll.question,
-      description: "Tap to vote — this or that",
-      images: [`${appUrl}/api/polls/${shortId}/og`],
-    },
+    title: poll ? `${poll.question} — this or that` : "Poll not found",
   };
 }
 
-async function fetchPoll(shortId: string) {
+export default async function MakerPollDetailPage({ params }: Props) {
+  const { shortId } = await params;
+
+  const user = await getUser();
+  if (!user) {
+    redirect(`/login?next=/polls/${shortId}`);
+  }
+
   const supabase = await createClient();
 
-  const { data: poll, error: pollError } = await supabase
+  const { data: poll } = await supabase
     .from("polls")
     .select("*")
     .eq("short_id", shortId)
     .single();
 
-  if (pollError || !poll) return null;
-
-  const { data: options } = await supabase
-    .from("options")
-    .select("*")
-    .eq("poll_id", poll.id)
-    .order("position");
-
-  const { data: matchups } = await supabase
-    .from("matchups")
-    .select("*")
-    .eq("poll_id", poll.id)
-    .order("round");
-
-  return {
-    ...poll,
-    options: options ?? [],
-    matchups: matchups ?? [],
-  };
-}
-
-function isPollClosed(poll: {
-  closed_at: string | null;
-  closes_at: string | null;
-}) {
-  if (poll.closed_at) return true;
-  if (poll.closes_at && new Date(poll.closes_at) < new Date()) return true;
-  return false;
-}
-
-export default async function PollPage({ params }: Props) {
-  const { shortId } = await params;
-  const poll = await fetchPoll(shortId);
-
   if (!poll) {
     notFound();
   }
 
-  // Soft-deleted polls show a removed message.
-  if (poll.deleted_at) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-4">
-        <h1 className="text-xl font-bold">This poll has been removed.</h1>
-      </div>
-    );
+  // Non-creator gets redirected to the voter view
+  if (poll.creator_id !== user.id) {
+    redirect(`/p/${shortId}`);
   }
 
-  // Closed or expired polls redirect to results.
-  if (isPollClosed(poll)) {
-    redirect(`/polls/${shortId}/results`);
-  }
+  // Fetch options and vote counts
+  const { data: options } = await supabase
+    .from("options")
+    .select("id, label, image_url, position")
+    .eq("poll_id", poll.id)
+    .order("position");
 
-  // Active matchup (MVP: always round 1, the only matchup).
-  const matchup = poll.matchups[0];
-  if (!matchup) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-4">
-        <h1 className="text-xl font-bold">This poll is not available.</h1>
-      </div>
-    );
-  }
+  const { data: votes } = await supabase
+    .from("votes")
+    .select("option_id, voter_name, created_at")
+    .eq("poll_id", poll.id)
+    .order("created_at", { ascending: false });
 
-  const optionA = poll.options.find((o) => o.id === matchup.option_a_id);
-  const optionB = poll.options.find((o) => o.id === matchup.option_b_id);
-
-  if (!optionA || !optionB) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center px-4">
-        <h1 className="text-xl font-bold">This poll is not available.</h1>
-      </div>
-    );
+  const voteCounts: Record<string, number> = {};
+  for (const v of votes ?? []) {
+    voteCounts[v.option_id] = (voteCounts[v.option_id] ?? 0) + 1;
   }
+  const totalVotes = votes?.length ?? 0;
+
+  const isClosed =
+    !!poll.closed_at ||
+    (!!poll.closes_at && new Date(poll.closes_at) < new Date());
+
+  const status = poll.deleted_at
+    ? "deleted"
+    : isClosed
+      ? "closed"
+      : poll.published_at
+        ? "live"
+        : "draft";
+
+  const statusColor =
+    status === "live"
+      ? "bg-success-bg text-success-ink"
+      : status === "closed"
+        ? "bg-sand text-muted"
+        : "bg-option-a-tint text-option-a";
+
+  // Recent votes (last 10)
+  const recentVotes = (votes ?? []).slice(0, 10).map((v) => {
+    const opt = (options ?? []).find((o) => o.id === v.option_id);
+    return {
+      name: v.voter_name ?? "Anonymous",
+      optionLabel: opt?.label ?? "Unknown",
+      optionPosition: opt?.position ?? 0,
+      createdAt: v.created_at,
+    };
+  });
 
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Question header */}
-      <div className="px-4 pt-8 pb-4 text-center">
-        <h1 className="text-xl font-bold tracking-tight sm:text-2xl">
+    <div className="mx-auto min-h-screen max-w-2xl px-4 py-12">
+      {/* Back link */}
+      <Link
+        href="/dashboard"
+        className="text-muted hover:text-ink mb-6 inline-block text-sm font-medium"
+      >
+        ← All polls
+      </Link>
+
+      {/* Header */}
+      <div className="mb-8 space-y-3">
+        <div className="flex items-center gap-3">
+          <span
+            className={`rounded-pill px-3 py-1 text-xs font-semibold capitalize ${statusColor}`}
+          >
+            {status}
+          </span>
+          <span className="text-muted-2 text-xs">
+            Created {new Date(poll.created_at).toLocaleDateString()}
+          </span>
+        </div>
+        <h1 className="font-display text-2xl font-bold tracking-tight">
           {poll.question}
         </h1>
       </div>
 
-      {/* Voting UI */}
-      <VotingUI
-        shortId={shortId}
-        matchupId={matchup.id}
-        optionA={{
-          id: optionA.id,
-          label: optionA.label,
-          imageUrl: optionA.image_url,
-        }}
-        optionB={{
-          id: optionB.id,
-          label: optionB.label,
-          imageUrl: optionB.image_url,
-        }}
-      />
+      {/* Short link */}
+      <SharePanel shortId={shortId} />
+
+      {/* Results */}
+      <div className="mt-8 space-y-4">
+        <h2 className="text-muted text-sm font-semibold">Results</h2>
+        {(options ?? []).map((opt, i) => {
+          const count = voteCounts[opt.id] ?? 0;
+          const pct =
+            totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+          const barColor = i === 0 ? "bg-option-a" : "bg-option-b";
+
+          return (
+            <div key={opt.id} className="space-y-1.5">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-semibold">{opt.label}</span>
+                <span className="text-body text-sm tabular-nums">
+                  {pct}% ({count})
+                </span>
+              </div>
+              <div className="rounded-pill bg-sand h-3 overflow-hidden">
+                <div
+                  className={`${barColor} rounded-pill h-full transition-all duration-700 ease-out`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+        <p className="text-muted-2 text-xs">{totalVotes} total votes</p>
+      </div>
+
+      {/* Recent votes */}
+      {recentVotes.length > 0 && (
+        <div className="mt-8 space-y-3">
+          <h2 className="text-muted text-sm font-semibold">Recent votes</h2>
+          <div className="space-y-2">
+            {recentVotes.map((v, i) => (
+              <div
+                key={i}
+                className="rounded-card border-line flex items-center gap-3 border px-4 py-3"
+              >
+                <span className="bg-sand text-muted flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold">
+                  {v.name[0]?.toUpperCase() ?? "?"}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{v.name}</p>
+                  <p className="text-muted-2 text-xs">
+                    Voted{" "}
+                    <span
+                      className={
+                        v.optionPosition === 0
+                          ? "text-option-a"
+                          : "text-option-b"
+                      }
+                    >
+                      {v.optionLabel}
+                    </span>
+                    {" · "}
+                    {formatRelativeTime(v.createdAt)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="mt-10 flex flex-col gap-3">
+        <Link
+          href={`/p/${shortId}`}
+          className="rounded-card bg-dark-panel py-3 text-center text-sm font-medium text-white transition-colors hover:opacity-90"
+        >
+          Open voter link →
+        </Link>
+        <Link
+          href="/dashboard"
+          className="rounded-card border-line text-ink hover:bg-bg-subtle border py-3 text-center text-sm font-medium transition-colors"
+        >
+          Back to dashboard
+        </Link>
+      </div>
     </div>
   );
+}
+
+function formatRelativeTime(dateStr: string): string {
+  const now = Date.now();
+  const then = new Date(dateStr).getTime();
+  const diff = now - then;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "just now";
+  if (mins < 60) return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  return `${days}d ago`;
 }
