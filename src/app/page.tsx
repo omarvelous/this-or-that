@@ -76,7 +76,7 @@ export default function HomePage() {
         </div>
 
         {/* Preview card (static — structured for future interactivity) */}
-        <div className="w-full max-w-sm flex-shrink-0">
+        <div className="animate-floaty w-full max-w-sm flex-shrink-0">
           <div className="rounded-card border-line bg-surface shadow-card-float border p-5">
             <p className="text-muted text-center text-sm font-semibold">
               Which vibe?

@@ -47,7 +47,7 @@ export function ShareView({ shortId, question }: ShareViewProps) {
     <div className="w-full max-w-md space-y-8">
       {/* Success badge */}
       <div className="flex justify-center">
-        <span className="bg-option-a flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white">
+        <span className="animate-pop bg-option-a flex h-16 w-16 items-center justify-center rounded-full text-2xl font-bold text-white">
           ✓
         </span>
       </div>

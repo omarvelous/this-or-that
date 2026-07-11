@@ -171,3 +171,88 @@ body {
   color: var(--color-ink);
   font-family: var(--font-body);
 }
+
+/* ============================================================
+   Animations
+   ============================================================ */
+
+/* Fade up — cards entering view, page transitions */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pop in — badges, success icons, modals */
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Rise — modal card entrance */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Gentle float — hero preview card */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Utility classes for animations */
+.animate-fade-up {
+  animation: fadeUp 0.45s ease-out both;
+}
+
+.animate-pop {
+  animation: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-rise {
+  animation: rise 0.3s ease-out both;
+}
+
+.animate-floaty {
+  animation: floaty 4s ease-in-out infinite;
+}
+
+/* Staggered delays for lists */
+.delay-75 {
+  animation-delay: 75ms;
+}
+.delay-150 {
+  animation-delay: 150ms;
+}
+.delay-225 {
+  animation-delay: 225ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
+}

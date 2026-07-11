@@ -33,7 +33,7 @@ export function IdentityModal(props: IdentityModalProps) {
       />
 
       {/* Modal */}
-      <div className="bg-bg shadow-card-float relative w-full max-w-[420px] rounded-[26px] p-7">
+      <div className="animate-rise bg-bg shadow-card-float relative w-full max-w-[420px] rounded-[26px] p-7">
         {/* Close button */}
         <button
           onClick={props.onClose}

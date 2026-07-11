@@ -28,7 +28,7 @@ export function SiteHeader() {
           </Link>
           <Link
             href="/polls/new"
-            className="rounded-input bg-option-a hover:bg-option-a-hover px-4 py-2 text-sm font-semibold text-white transition-colors"
+            className="rounded-input bg-option-a hover:bg-option-a-hover px-5 py-2.5 text-sm font-semibold text-white transition-colors"
           >
             Create a poll
           </Link>
