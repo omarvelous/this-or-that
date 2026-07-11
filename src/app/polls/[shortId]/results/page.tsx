@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { ResultsView } from "@/components/results-view";
+import { SharePanel } from "@/components/share-panel";
 import { createClient } from "@/lib/supabase/server";
 
 import type { Metadata } from "next";
@@ -82,8 +83,9 @@ export default async function ResultsPage({ params }: Props) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-12">
+    <div className="flex min-h-screen flex-col items-center justify-center gap-10 px-4 py-12">
       <ResultsView shortId={shortId} initialData={data} />
+      <SharePanel shortId={shortId} />
     </div>
   );
 }
