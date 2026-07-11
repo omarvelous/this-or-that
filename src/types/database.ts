@@ -5,6 +5,7 @@ export type Database = {
   public: {
     Tables: {
       users: {
+        Relationships: [];
         Row: {
           id: string;
           email: string;
@@ -33,6 +34,7 @@ export type Database = {
         };
       };
       polls: {
+        Relationships: [];
         Row: {
           id: string;
           short_id: string;
@@ -70,6 +72,7 @@ export type Database = {
         };
       };
       options: {
+        Relationships: [];
         Row: {
           id: string;
           poll_id: string;
@@ -95,6 +98,7 @@ export type Database = {
         };
       };
       matchups: {
+        Relationships: [];
         Row: {
           id: string;
           poll_id: string;
@@ -123,6 +127,7 @@ export type Database = {
         };
       };
       votes: {
+        Relationships: [];
         Row: {
           id: string;
           poll_id: string;
