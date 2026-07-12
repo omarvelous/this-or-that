@@ -2,6 +2,37 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const isDev = process.env.NODE_ENV === "development";
+
+/**
+ * Build the composite fingerprint used for vote dedup.
+ * In production: SHA-256(visitorId + IP + shortId) — ties the vote to
+ * both the device and the network.
+ * In development: SHA-256(visitorId + shortId) — skips IP so different
+ * browsers/incognito windows can vote independently on localhost.
+ */
+async function buildCompositeFingerprint(
+  visitorFingerprint: string,
+  shortId: string,
+  request: NextRequest,
+): Promise<string> {
+  let raw = `${visitorFingerprint}:${shortId}`;
+
+  if (!isDev) {
+    const ip =
+      request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      request.headers.get("x-real-ip") ??
+      "unknown";
+    raw = `${visitorFingerprint}:${ip}:${shortId}`;
+  }
+
+  const encoder = new TextEncoder();
+  const hashBuffer = await crypto.subtle.digest("SHA-256", encoder.encode(raw));
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
 interface VoteBody {
   optionId: string;
   matchupId: string;
@@ -33,20 +64,12 @@ export async function POST(
     );
   }
 
-  // 2. Build composite fingerprint: hash(visitorId + hashedIP + pollShortId)
-  // The client sends the FingerprintJS visitorId. We mix in the IP server-side
-  // so it can't be spoofed from the browser.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
-
-  const encoder = new TextEncoder();
-  const data = encoder.encode(`${fingerprint}:${ip}:${shortId}`);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const compositeFingerprint = Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  // 2. Build composite fingerprint for dedup
+  const compositeFingerprint = await buildCompositeFingerprint(
+    fingerprint,
+    shortId,
+    request,
+  );
 
   // Use the admin client to bypass RLS — the vote insert policy is open,
   // but we need to read the poll state without an auth session.
@@ -188,17 +211,11 @@ export async function PATCH(
   }
 
   // Build the same composite fingerprint the POST handler used.
-  const ip =
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    request.headers.get("x-real-ip") ??
-    "unknown";
-
-  const encoder = new TextEncoder();
-  const data = encoder.encode(`${body.fingerprint}:${ip}:${shortId}`);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  const compositeFingerprint = Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
+  const compositeFingerprint = await buildCompositeFingerprint(
+    body.fingerprint,
+    shortId,
+    request,
+  );
 
   // Update voter_name on the matching vote.
   const { error } = await supabase
