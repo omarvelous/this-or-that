@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import QRCode from "react-qr-code";
+
+const subscribe = () => () => {};
+const getSnapshot = () => !!navigator.share;
+const getServerSnapshot = () => false;
 
 interface SharePanelProps {
   shortId: string;
@@ -45,7 +49,11 @@ export function SharePanel({ shortId }: SharePanelProps) {
     }
   }
 
-  const hasNativeShare = typeof navigator !== "undefined" && !!navigator.share;
+  const hasNativeShare = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   return (
     <div className="w-full max-w-sm space-y-5">

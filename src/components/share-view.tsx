@@ -1,8 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import QRCode from "react-qr-code";
+
+const subscribe = () => () => {};
+const getSnapshot = () => !!navigator.share;
+const getServerSnapshot = () => false;
 
 interface ShareViewProps {
   shortId: string;
@@ -41,7 +45,11 @@ export function ShareView({ shortId, question }: ShareViewProps) {
     }
   }
 
-  const hasNativeShare = typeof navigator !== "undefined" && !!navigator.share;
+  const hasNativeShare = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   return (
     <div className="w-full max-w-md space-y-8">
