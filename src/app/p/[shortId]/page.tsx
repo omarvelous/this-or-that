@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
 import { VoterVoteUI } from "@/components/voter-vote-ui";
+import { getUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 import type { Metadata, ResolvingMetadata } from "next";
@@ -89,7 +90,7 @@ function isPollClosed(poll: {
 
 export default async function VoterPollPage({ params }: Props) {
   const { shortId } = await params;
-  const poll = await fetchPoll(shortId);
+  const [poll, user] = await Promise.all([fetchPoll(shortId), getUser()]);
 
   if (!poll) {
     notFound();
@@ -188,6 +189,17 @@ export default async function VoterPollPage({ params }: Props) {
               label: optionB.label,
               imageUrl: optionB.image_url,
             }}
+            voter={
+              user
+                ? {
+                    name:
+                      user.user_metadata?.display_name ??
+                      user.user_metadata?.full_name ??
+                      null,
+                    email: user.email ?? null,
+                  }
+                : null
+            }
           />
         </div>
 
