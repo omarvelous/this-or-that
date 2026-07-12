@@ -1,71 +1,258 @@
 @import "tailwindcss";
 
-:root {
-  /* Brand colors — high-contrast dualistic palette */
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-secondary: #f43f5e;
-  --color-secondary-hover: #e11d48;
-
-  /* Option A / Option B — the core split */
+/* ============================================================
+   Theme: Default (Geist / Slate)
+   ============================================================ */
+[data-theme="default"] {
+  /* Brand / Option colors */
   --color-option-a: #6366f1;
   --color-option-a-hover: #4f46e5;
+  --color-option-a-tint: #eef2ff;
   --color-option-b: #f43f5e;
   --color-option-b-hover: #e11d48;
+  --color-option-b-tint: #fff1f2;
 
   /* Surfaces */
   --color-bg: #ffffff;
   --color-bg-subtle: #f8fafc;
-  --color-bg-muted: #f1f5f9;
   --color-surface: #ffffff;
+  --color-sand: #f1f5f9;
+  --color-dark-panel: #0f172a;
 
   /* Text */
-  --color-text: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-text-inverse: #ffffff;
+  --color-ink: #0f172a;
+  --color-body: #475569;
+  --color-muted: #64748b;
+  --color-muted-2: #94a3b8;
 
   /* Borders */
-  --color-border: #e2e8f0;
-  --color-border-hover: #cbd5e1;
+  --color-line: rgba(15, 23, 42, 0.12);
 
   /* Feedback */
-  --color-success: #10b981;
+  --color-success-bg: #ecfdf5;
+  --color-success-ink: #059669;
   --color-error: #ef4444;
 
+  /* Shadows */
+  --shadow-card-float: 0 40px 90px -34px rgba(15, 23, 42, 0.25);
+  --shadow-cta-glow: 0 16px 34px -14px rgba(99, 102, 241, 0.5);
+  --shadow-vote-hover-a: 0 26px 50px -24px rgba(99, 102, 241, 0.45);
+  --shadow-vote-hover-b: 0 26px 50px -24px rgba(244, 63, 94, 0.45);
+  --shadow-dark: 0 24px 60px -20px rgba(0, 0, 0, 0.5);
+
   /* Radii */
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-full: 9999px;
+  --radius-input: 14px;
+  --radius-card: 20px;
+  --radius-pill: 9999px;
+  --radius-icon: 12px;
+
+  /* Typography */
+  --font-display: var(--font-geist-sans), system-ui, sans-serif;
+  --font-body: var(--font-geist-sans), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
+/* ============================================================
+   Theme: Warm (Design handoff — Bricolage / Hanken / cream)
+   ============================================================ */
+[data-theme="warm"] {
+  /* Brand / Option colors */
+  --color-option-a: #ff5b34;
+  --color-option-a-hover: #e64e2b;
+  --color-option-a-tint: #fde9e2;
+  --color-option-b: #0fa47f;
+  --color-option-b-hover: #0d9070;
+  --color-option-b-tint: #e3f4ee;
+
+  /* Surfaces */
+  --color-bg: #fbf6ef;
+  --color-bg-subtle: #f7f0e6;
+  --color-surface: #ffffff;
+  --color-sand: #f1e7da;
+  --color-dark-panel: #1b140d;
+
+  /* Text */
+  --color-ink: #241a11;
+  --color-body: #6e6559;
+  --color-muted: #8a7967;
+  --color-muted-2: #a79b8b;
+
+  /* Borders */
+  --color-line: rgba(36, 26, 17, 0.12);
+
+  /* Feedback */
+  --color-success-bg: #e6f5ef;
+  --color-success-ink: #0b7d60;
+  --color-error: #ef4444;
+
+  /* Shadows */
+  --shadow-card-float: 0 40px 90px -34px rgba(80, 50, 20, 0.34);
+  --shadow-cta-glow: 0 16px 34px -14px rgba(255, 91, 52, 0.7);
+  --shadow-vote-hover-a: 0 26px 50px -24px rgba(255, 91, 52, 0.55);
+  --shadow-vote-hover-b: 0 26px 50px -24px rgba(15, 164, 127, 0.45);
+  --shadow-dark: 0 24px 60px -20px rgba(0, 0, 0, 0.6);
+
+  /* Radii */
+  --radius-input: 14px;
+  --radius-card: 22px;
+  --radius-pill: 9999px;
+  --radius-icon: 14px;
+
+  /* Typography */
+  --font-display: var(--font-bricolage), system-ui, sans-serif;
+  --font-body: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-space-grotesk), ui-monospace, monospace;
+}
+
+/* ============================================================
+   Tailwind theme token bridge
+   Maps CSS custom properties to Tailwind utility classes.
+   ============================================================ */
 @theme inline {
+  /* Colors */
   --color-bg: var(--color-bg);
   --color-bg-subtle: var(--color-bg-subtle);
-  --color-bg-muted: var(--color-bg-muted);
   --color-surface: var(--color-surface);
-  --color-text: var(--color-text);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-text-muted: var(--color-text-muted);
-  --color-text-inverse: var(--color-text-inverse);
-  --color-primary: var(--color-primary);
-  --color-primary-hover: var(--color-primary-hover);
-  --color-secondary: var(--color-secondary);
-  --color-secondary-hover: var(--color-secondary-hover);
+  --color-sand: var(--color-sand);
+  --color-dark-panel: var(--color-dark-panel);
+  --color-ink: var(--color-ink);
+  --color-body: var(--color-body);
+  --color-muted: var(--color-muted);
+  --color-muted-2: var(--color-muted-2);
+  --color-line: var(--color-line);
   --color-option-a: var(--color-option-a);
   --color-option-a-hover: var(--color-option-a-hover);
+  --color-option-a-tint: var(--color-option-a-tint);
   --color-option-b: var(--color-option-b);
   --color-option-b-hover: var(--color-option-b-hover);
-  --color-border: var(--color-border);
-  --color-border-hover: var(--color-border-hover);
-  --color-success: var(--color-success);
+  --color-option-b-tint: var(--color-option-b-tint);
+  --color-success-bg: var(--color-success-bg);
+  --color-success-ink: var(--color-success-ink);
   --color-error: var(--color-error);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Shadows */
+  --shadow-card-float: var(--shadow-card-float);
+  --shadow-cta-glow: var(--shadow-cta-glow);
+  --shadow-vote-hover-a: var(--shadow-vote-hover-a);
+  --shadow-vote-hover-b: var(--shadow-vote-hover-b);
+  --shadow-dark: var(--shadow-dark);
+
+  /* Radii */
+  --radius-input: var(--radius-input);
+  --radius-card: var(--radius-card);
+  --radius-pill: var(--radius-pill);
+  --radius-icon: var(--radius-icon);
+
+  /* Fonts */
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-mono: var(--font-mono);
+
+  /* Backward-compat aliases for existing components (remove after redesign) */
+  --color-primary: var(--color-option-a);
+  --color-primary-hover: var(--color-option-a-hover);
+  --color-secondary: var(--color-option-b);
+  --color-secondary-hover: var(--color-option-b-hover);
+  --color-text: var(--color-ink);
+  --color-text-secondary: var(--color-body);
+  --color-text-muted: var(--color-muted);
+  --color-text-inverse: #ffffff;
+  --color-border: var(--color-line);
+  --color-border-hover: var(--color-line);
+  --color-bg-muted: var(--color-sand);
+  --font-sans: var(--font-body);
 }
 
+/* ============================================================
+   Base styles
+   ============================================================ */
 body {
   background: var(--color-bg);
-  color: var(--color-text);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+/* ============================================================
+   Animations
+   ============================================================ */
+
+/* Fade up — cards entering view, page transitions */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pop in — badges, success icons, modals */
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  60% {
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Rise — modal card entrance */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Gentle float — hero preview card */
+@keyframes floaty {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* Utility classes for animations */
+.animate-fade-up {
+  animation: fadeUp 0.45s ease-out both;
+}
+
+.animate-pop {
+  animation: pop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.animate-rise {
+  animation: rise 0.3s ease-out both;
+}
+
+.animate-floaty {
+  animation: floaty 4s ease-in-out infinite;
+}
+
+/* Staggered delays for lists */
+.delay-75 {
+  animation-delay: 75ms;
+}
+.delay-150 {
+  animation-delay: 150ms;
+}
+.delay-225 {
+  animation-delay: 225ms;
+}
+.delay-300 {
+  animation-delay: 300ms;
 }

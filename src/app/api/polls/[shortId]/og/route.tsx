@@ -37,8 +37,7 @@ export async function GET(
         flexDirection: "column",
         width: "100%",
         height: "100%",
-        backgroundColor: "#0f172a",
-        color: "#ffffff",
+        backgroundColor: "#FBF6EF",
         fontFamily: "system-ui, sans-serif",
       }}
     >
@@ -48,44 +47,53 @@ export async function GET(
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          padding: "40px 60px 20px",
+          padding: "50px 60px 24px",
         }}
       >
         <span
           style={{
-            fontSize: 40,
-            fontWeight: 700,
+            fontSize: 44,
+            fontWeight: 800,
+            color: "#241A11",
             textAlign: "center",
-            lineHeight: 1.3,
+            lineHeight: 1.2,
             maxWidth: 900,
+            letterSpacing: -1,
           }}
         >
           {poll.question}
         </span>
       </div>
 
-      {/* Options */}
+      {/* Options split */}
       <div
         style={{
           display: "flex",
           flex: 1,
-          gap: 24,
-          padding: "20px 60px 30px",
+          gap: 20,
+          padding: "16px 60px 24px",
         }}
       >
-        {/* Option A */}
+        {/* Option A — coral */}
         <div
           style={{
             display: "flex",
             flex: 1,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#6366f1",
+            backgroundColor: "#FF5B34",
             borderRadius: 24,
-            padding: "20px 30px",
+            padding: "20px 32px",
           }}
         >
-          <span style={{ fontSize: 32, fontWeight: 700, textAlign: "center" }}>
+          <span
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color: "#FFFFFF",
+              textAlign: "center",
+            }}
+          >
             {optionA?.label ?? "Option A"}
           </span>
         </div>
@@ -100,9 +108,9 @@ export async function GET(
         >
           <span
             style={{
-              fontSize: 20,
+              fontSize: 18,
               fontWeight: 800,
-              color: "#94a3b8",
+              color: "#8A7967",
               letterSpacing: 4,
             }}
           >
@@ -110,34 +118,45 @@ export async function GET(
           </span>
         </div>
 
-        {/* Option B */}
+        {/* Option B — teal */}
         <div
           style={{
             display: "flex",
             flex: 1,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: "#f43f5e",
+            backgroundColor: "#0FA47F",
             borderRadius: 24,
-            padding: "20px 30px",
+            padding: "20px 32px",
           }}
         >
-          <span style={{ fontSize: 32, fontWeight: 700, textAlign: "center" }}>
+          <span
+            style={{
+              fontSize: 36,
+              fontWeight: 700,
+              color: "#FFFFFF",
+              textAlign: "center",
+            }}
+          >
             {optionB?.label ?? "Option B"}
           </span>
         </div>
       </div>
 
-      {/* Branding */}
+      {/* Footer */}
       <div
         style={{
           display: "flex",
-          justifyContent: "center",
-          padding: "0 60px 30px",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 60px 36px",
         }}
       >
-        <span style={{ fontSize: 18, color: "#64748b", fontWeight: 600 }}>
+        <span style={{ fontSize: 20, fontWeight: 700, color: "#241A11" }}>
           this or that
+        </span>
+        <span style={{ fontSize: 16, fontWeight: 600, color: "#8A7967" }}>
+          Tap to vote · live poll
         </span>
       </div>
     </div>,

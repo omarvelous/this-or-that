@@ -11,8 +11,8 @@ export function SharePanel({ shortId }: SharePanelProps) {
   const [copied, setCopied] = useState(false);
   const pollUrl =
     typeof window !== "undefined"
-      ? `${window.location.origin}/polls/${shortId}`
-      : `/polls/${shortId}`;
+      ? `${window.location.origin}/p/${shortId}`
+      : `/p/${shortId}`;
 
   async function handleCopy() {
     try {

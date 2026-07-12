@@ -6,6 +6,8 @@ interface VoteBody {
   optionId: string;
   matchupId: string;
   fingerprint: string;
+  voterName?: string;
+  voterEmail?: string;
 }
 
 export async function POST(
@@ -22,7 +24,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
-  const { optionId, matchupId, fingerprint } = body;
+  const { optionId, matchupId, fingerprint, voterName, voterEmail } = body;
 
   if (!optionId || !matchupId || !fingerprint) {
     return NextResponse.json(
@@ -112,6 +114,8 @@ export async function POST(
     option_id: optionId,
     matchup_id: matchupId,
     fingerprint: compositeFingerprint,
+    voter_name: voterName?.trim() || null,
+    voter_email: voterEmail?.trim() || null,
   });
 
   if (voteError) {

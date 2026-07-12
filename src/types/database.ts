@@ -134,6 +134,7 @@ export type Database = {
           option_id: string;
           matchup_id: string;
           voter_name: string | null;
+          voter_email: string | null;
           fingerprint: string;
           created_at: string;
         };
@@ -143,6 +144,7 @@ export type Database = {
           option_id: string;
           matchup_id: string;
           voter_name?: string | null;
+          voter_email?: string | null;
           fingerprint: string;
           created_at?: string;
         };
@@ -152,6 +154,7 @@ export type Database = {
           option_id?: string;
           matchup_id?: string;
           voter_name?: string | null;
+          voter_email?: string | null;
           fingerprint?: string;
         };
       };
