@@ -13,10 +13,8 @@ interface SharePanelProps {
 
 export function SharePanel({ shortId }: SharePanelProps) {
   const [copied, setCopied] = useState(false);
-  const pollUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/p/${shortId}`
-      : `/p/${shortId}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const pollUrl = `${appUrl}/p/${shortId}`;
 
   async function handleCopy() {
     try {

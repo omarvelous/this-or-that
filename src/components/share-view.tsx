@@ -15,10 +15,8 @@ interface ShareViewProps {
 
 export function ShareView({ shortId, question }: ShareViewProps) {
   const [copied, setCopied] = useState(false);
-  const voterUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/p/${shortId}`
-      : `/p/${shortId}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const voterUrl = `${appUrl}/p/${shortId}`;
 
   async function handleCopy() {
     try {
