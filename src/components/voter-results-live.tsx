@@ -13,15 +13,17 @@ interface VoterResultsLiveProps {
 // when data changes, so the ResultRow components re-animate.
 export function VoterResultsLive({ shortId }: VoterResultsLiveProps) {
   const router = useRouter();
+  const disabled = process.env.NEXT_PUBLIC_DISABLE_POLLING === "true";
 
   useEffect(() => {
+    if (disabled) return;
+
     const interval = setInterval(() => {
-      // Trigger a server-side re-render to get fresh data
       router.refresh();
     }, POLL_INTERVAL);
 
     return () => clearInterval(interval);
-  }, [shortId, router]);
+  }, [shortId, router, disabled]);
 
   return null;
 }
