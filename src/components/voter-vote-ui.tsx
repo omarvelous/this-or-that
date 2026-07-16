@@ -13,11 +13,17 @@ interface OptionData {
   imageUrl: string | null;
 }
 
+interface VoterInfo {
+  name: string | null;
+  email: string | null;
+}
+
 interface VoterVoteUIProps {
   shortId: string;
   matchupId: string;
   optionA: OptionData;
   optionB: OptionData;
+  voter: VoterInfo | null;
 }
 
 type VoteStatus = "idle" | "selected" | "voting" | "duplicate" | "error";
@@ -27,23 +33,34 @@ export function VoterVoteUI({
   matchupId,
   optionA,
   optionB,
+  voter,
 }: VoterVoteUIProps) {
   const router = useRouter();
   const [status, setStatus] = useState<VoteStatus>("idle");
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState("");
 
+  const isAuthenticated = !!voter;
+
   function handleOptionTap(optionId: string) {
     if (status === "voting") return;
 
-    // Store the selection and show the identity modal
     setSelectedOptionId(optionId);
-    setStatus("selected");
+
+    if (isAuthenticated) {
+      // Authenticated user — cast immediately with their info, no modal
+      castVote(optionId, voter.name ?? "", voter.email ?? "");
+    } else {
+      // Anonymous — show identity modal
+      setStatus("selected");
+    }
   }
 
-  async function castVote(voterName: string, voterEmail: string) {
-    if (!selectedOptionId) return;
-
+  async function castVote(
+    optionId: string,
+    voterName: string,
+    voterEmail: string,
+  ) {
     setStatus("voting");
     setErrorMsg("");
 
@@ -54,7 +71,7 @@ export function VoterVoteUI({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          optionId: selectedOptionId,
+          optionId,
           matchupId,
           fingerprint: visitorId,
           voterName: voterName || undefined,
@@ -138,12 +155,12 @@ export function VoterVoteUI({
         {status === "error" && <p className="text-error text-sm">{errorMsg}</p>}
       </div>
 
-      {/* Pre-vote identity modal */}
-      {status === "selected" && (
+      {/* Pre-vote identity modal — only for anonymous voters */}
+      {status === "selected" && !isAuthenticated && (
         <IdentityModal
           mode="vote"
-          onSubmit={(name, email) => castVote(name, email)}
-          onSkip={() => castVote("", "")}
+          onSubmit={(name, email) => castVote(selectedOptionId!, name, email)}
+          onSkip={() => castVote(selectedOptionId!, "", "")}
           onClose={() => {
             setStatus("idle");
             setSelectedOptionId(null);

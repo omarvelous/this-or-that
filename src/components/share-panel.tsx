@@ -1,7 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import QRCode from "react-qr-code";
+
+const subscribe = () => () => {};
+const getSnapshot = () => !!navigator.share;
+const getServerSnapshot = () => false;
 
 interface SharePanelProps {
   shortId: string;
@@ -9,10 +13,8 @@ interface SharePanelProps {
 
 export function SharePanel({ shortId }: SharePanelProps) {
   const [copied, setCopied] = useState(false);
-  const pollUrl =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/p/${shortId}`
-      : `/p/${shortId}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  const pollUrl = `${appUrl}/p/${shortId}`;
 
   async function handleCopy() {
     try {
@@ -45,7 +47,11 @@ export function SharePanel({ shortId }: SharePanelProps) {
     }
   }
 
-  const hasNativeShare = typeof navigator !== "undefined" && !!navigator.share;
+  const hasNativeShare = useSyncExternalStore(
+    subscribe,
+    getSnapshot,
+    getServerSnapshot,
+  );
 
   return (
     <div className="w-full max-w-sm space-y-5">
